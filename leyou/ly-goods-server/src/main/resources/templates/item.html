@@ -642,37 +642,48 @@
 						.then(resp => {
 							this.user = resp.data;  //0登录 1未登录  对象为空代表购物车为空   对象有值就表示登录
 							if (this.user.id==null){
-								alert("未登录")
+								//alert("未登录")
 								// 未登录保存在浏览器本地的localStorage中
 								// 1、查询本地购物车
 								let carts = ly.store.get("carts") || [];
+								//循环购物车数据，如果当前购物车没有数据就去查询
 								let cart = carts.find(c=>c.skuId===this.sku.id);
+								let selectedSku={};
 								// 2、判断是否存在
 								if (cart) {
 									// 3、存在更新数量
-									cart.num += this.num;
+									cart.num=cart.num+this.num;
+									selectedSku=carts;
 								} else {
 									// 4、不存在，新增
 									cart = {
 										skuId: this.sku.id,
 										title: this.sku.title,
 										price: this.sku.price,
-										image: this.sku.images,
+										images: this.sku.images,
 										num: this.num,
-										ownSpec: this.ownSpec
+										ownSpec: this.sku.ownSpec
 									}
+									selectedSku=cart;
 									carts.push(cart);
 								}
 								// 把carts写回localstorage
 								ly.store.set("carts", carts);
+								ly.store.set("selectedSku", selectedSku);
 								// 跳转
 								//window.location.href = "http://www.leyou.com/cart.html";
 							}else{
 								alert("已登录")
+								//后台存放redis信息
+								this.sku.num=this.num;
+								let skuVo=this.sku;
+								console.info(skuVo);
+								this.ly.http.post("/cart/add",skuVo).then(resp=>{
+									//alert("添加购物车成功")
+
+								})
 							}
-						}).catch(()=>{
-					// 未登录保存在浏览器本地的localStorage中
-				})
+						})
 			}
 		},
 		//计算属性
